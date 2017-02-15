@@ -1,0 +1,15 @@
+[Unit]
+Description=Webcam service
+After=syslog.target
+
+[Service]
+Type=notify
+NotifyAccess=all
+WorkingDirectory=/opt/webcam
+ExecStart=/usr/bin/java -server -jar WebCam-1.0-SNAPSHOT.jar
+# WatchdogSec=30
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+
