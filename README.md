@@ -1,4 +1,4 @@
-# WebYourCam
+# WebYouCam
 
 Streams input captured by ffmpeg (webcams) to a html5 browser using javascript and websockets 
 

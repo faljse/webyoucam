@@ -71,6 +71,7 @@ public class Main {
             server.join();
         } catch (Throwable t) {
             t.printStackTrace(System.err);
+            System.exit(0);
         }
     }
 }
