@@ -990,7 +990,7 @@ TS.prototype.write = function(buffer) {
 		this.bits = new JSMpeg.BitBuffer(buffer);
 	}
 
-	while (this.bits.has(188 << 3)) {
+	while (this.bits.has(189 << 3)) {
 		this.parsePacket();
 	}
 
@@ -1011,12 +1011,21 @@ TS.prototype.parsePacket = function() {
 		i++;
 	}
 
-	if (!this.bits.has(187 << 3)) {
+	if (!this.bits.has(188 << 3)) {
 		// We found a sync token, but don't have enough data left
 		// to parse the package yet.
 		this.bits.rewind(8); //rewind before sync token
 		return;
 	}
+
+	this.bits.skip(187 << 3);
+    if(this.bits.read(8) !== 0x47) { //first occurance wasnt a sync token
+		this.bits.rewind(187 << 3); //rewind to position after non-token
+		console.log('fake 0x47');
+		return;
+    }
+    this.bits.rewind(188 << 3);
+    console.log('0x47');
 
 	var transportError = this.bits.read(1),
 		payloadStart = this.bits.read(1),
