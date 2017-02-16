@@ -960,6 +960,7 @@ JSMpeg.Demuxer.TS = (function(){ "use strict";
 
 var TS = function(options) {
 	this.bits = null;
+	this.synced = false;
 	this.leftoverBytes = null;
 
 	this.guessVideoFrameEnd = true;
@@ -990,7 +991,10 @@ TS.prototype.write = function(buffer) {
 		this.bits = new JSMpeg.BitBuffer(buffer);
 	}
 
-	while (this.bits.has(189 << 3)) {
+    if(!this.synced) {
+	    if(this.syncPacket())
+	        this.synced = true;
+    } else while (this.bits.has(188 << 3)) {
 		this.parsePacket();
 	}
 
@@ -1000,32 +1004,31 @@ TS.prototype.write = function(buffer) {
 		: null;
 };
 
+TS.prototype.syncPacket = function() {
+    var MINCNT = 5;
+    while (this.bits.read(8) !== 0x47);
+    var skipped = 0;
+    outer: while (this.bits.has(MINCNT * (188 << 3))) {
+       for (var i = 0; i < MINCNT; i++) {
+            this.bits.skip(187 << 3);
+            skipped += 188;
+            if (this.bits.read(8) !== 0x47) {
+                this.bits.rewind((skipped - 1) << 3);
+                break outer;
+            }
+        }
+        this.bits.rewind(MINCNT * (188 << 3) + ( 1 << 3));
+        return true;
+    }
+    return false;
+}
+
+
 TS.prototype.parsePacket = function() {
 	var end = (this.bits.index >> 3) + 188;
-
-	var i = 0;
-	while (this.bits.read(8) !== 0x47) {
-		if (i >= 187) {
+	if (this.bits.read(8) !== 0x47) {
 			throw("Sync Token not found");
-		}
-		i++;
 	}
-
-	if (!this.bits.has(188 << 3)) {
-		// We found a sync token, but don't have enough data left
-		// to parse the package yet.
-		this.bits.rewind(8); //rewind before sync token
-		return;
-	}
-
-	this.bits.skip(187 << 3);
-    if(this.bits.read(8) !== 0x47) { //first occurance wasnt a sync token
-		this.bits.rewind(187 << 3); //rewind to position after non-token
-		console.log('fake 0x47');
-		return;
-    }
-    this.bits.rewind(188 << 3);
-    console.log('0x47');
 
 	var transportError = this.bits.read(1),
 		payloadStart = this.bits.read(1),
