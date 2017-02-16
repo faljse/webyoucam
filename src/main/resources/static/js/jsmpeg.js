@@ -1006,19 +1006,18 @@ TS.prototype.write = function(buffer) {
 
 TS.prototype.syncPacket = function() {
     var MINCNT = 5;
-    while (this.bits.read(8) !== 0x47);
     var skipped = 0;
     outer: while (this.bits.has(MINCNT * (188 << 3))) {
        for (var i = 0; i < MINCNT; i++) {
-            this.bits.skip(187 << 3);
-            skipped += 188;
             if (this.bits.read(8) !== 0x47) {
-                this.bits.rewind((skipped - 1) << 3);
+                this.bits.rewind(skipped << 3); //try next byte
                 break outer;
             }
+           this.bits.skip(187 << 3);
+           skipped += 187;
         }
         this.bits.rewind(MINCNT * (188 << 3) + ( 1 << 3));
-        return true;
+        return true; //found sync token
     }
     return false;
 }
