@@ -7,7 +7,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
     <title>WebYouCam</title>
-    <script src="static/js/jsmpeg.js"></script>
+    <script src="static/js/jsmpeg.min.js"></script>
 </head>
 <body>
 <div id="wrapper">

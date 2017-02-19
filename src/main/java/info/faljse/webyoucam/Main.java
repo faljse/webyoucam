@@ -13,8 +13,11 @@ import org.glassfish.jersey.servlet.ServletContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.websocket.Extension;
 import javax.websocket.server.ServerContainer;
 import javax.websocket.server.ServerEndpointConfig;
+import java.util.Enumeration;
+import java.util.Set;
 
 /**
  * Created by Martin on 22.07.2016.
@@ -48,9 +51,6 @@ public class Main {
 
             // Initialize javax.websocket layer
             ServerContainer wscontainer = WebSocketServerContainerInitializer.configureContext(context);
-            WebSocketUpgradeFilter filter =
-                    (WebSocketUpgradeFilter)context.getAttribute("org.eclipse.jetty.websocket.server.WebSocketUpgradeFilter");
-            filter.getFactory().getExtensionFactory().unregister("permessage-deflate");
 
             for(int i = 0; i< info.faljse.webyoucam.Settings.ffmpegCmd.length; i++){
                 String cmd= info.faljse.webyoucam.Settings.ffmpegCmd[i];
@@ -65,10 +65,10 @@ public class Main {
                 wscontainer.addEndpoint(sec);
             }
             server.start();
-
+            WebSocketUpgradeFilter filter = (WebSocketUpgradeFilter)context.getAttribute("org.eclipse.jetty.websocket.server.WebSocketUpgradeFilter");
+            filter.getFactory().getExtensionFactory().unregister("permessage-deflate");
             server.dump(System.err);
             SDNotify.sendNotify(); //notify: ready
-            server.join();
         } catch (Throwable t) {
             t.printStackTrace(System.err);
             System.exit(0);
