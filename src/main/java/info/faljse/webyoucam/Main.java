@@ -69,6 +69,7 @@ public class Main {
             filter.getFactory().getExtensionFactory().unregister("permessage-deflate");
             server.dump(System.err);
             SDNotify.sendNotify(); //notify: ready
+            server.join();
         } catch (Throwable t) {
             t.printStackTrace(System.err);
             System.exit(0);
