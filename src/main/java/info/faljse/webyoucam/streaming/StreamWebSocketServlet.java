@@ -18,8 +18,6 @@ public class StreamWebSocketServlet extends WebSocketServlet implements WebSocke
 {
     private static final long serialVersionUID = 1L;
     private final static Logger logger = LoggerFactory.getLogger(StreamWebSocketServlet.class);
-    private ServletHolder  holder;
-    private InputStreamServlet iss;
     private StreamWebSocket mySocket;
     private String id;
 
@@ -28,20 +26,19 @@ public class StreamWebSocketServlet extends WebSocketServlet implements WebSocke
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
         id = config.getInitParameter("id");
+        logger.info("init servlet id: {}",id);
         mySocket=new StreamWebSocket(id);
     }
 
     @Override
     public void configure(WebSocketServletFactory factory) {
         factory.setCreator(this);
-        logger.info("configure " + getClass().toString());
-        // set a 10 second timeout
+        logger.info("configure {}",id );
         factory.getPolicy().setIdleTimeout(10000);
     }
 
     @Override
     public Object createWebSocket(ServletUpgradeRequest req, ServletUpgradeResponse resp) {
-        String id=(String) req.getServletAttribute("id");
         for (String subprotocol : req.getSubProtocols())
         {
             if ("binary".equals(subprotocol))

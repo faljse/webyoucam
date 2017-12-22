@@ -29,7 +29,7 @@ public class WSSessions {
         synchronized (sessions) {
             ClientSession s = new ClientSession(session, buffer, sessionsSEQ++);
             sessions.add(s);
-            logger.info("Client added: {}; count: {}",s.getSession().toString(), sessions.size());
+            logger.info("Client added: {}", s.getSession().getRemoteAddress().toString());
         }
     }
 
@@ -40,10 +40,9 @@ public class WSSessions {
             while (i.hasNext()) {
                 ClientSession s = i.next(); // must be called before you can call i.remove()
                 s.send();
-                // Stats.sentBytes.add(buffer.length);
                 if(!s.isAlive()){
                     i.remove();
-                    logger.info("Client removed: {}; count: {}", s.getSession().toString(), sessions.size());
+                    logger.info("Client removed: {}", s.getSession().getRemoteAddress().toString());
                 }
             }}
     }

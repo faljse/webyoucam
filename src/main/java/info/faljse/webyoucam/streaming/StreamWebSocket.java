@@ -2,12 +2,9 @@ package info.faljse.webyoucam.streaming;
 
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.WebSocketListener;
-import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.nio.ByteBuffer;
 
 @WebSocket
 public class StreamWebSocket implements WebSocketListener
@@ -19,31 +16,24 @@ public class StreamWebSocket implements WebSocketListener
 		id=_id;
 	}
 
-    @OnWebSocketMessage
-    public void onWebSocketText(Session session, byte buf[], int offset, int len)
-    {
-    	System.out.println(ByteBuffer.wrap(buf,offset,len));
-    }
 
-    
+
 	@Override
-	public void onWebSocketClose(int arg0, String arg1)
+	public void onWebSocketClose(int code, String reason)
 	{
-		logger.info("close "+arg0 + arg1);
+		logger.info("close code: {}, reason: {}", code, reason);
 	}
 
 	@Override
 	public void onWebSocketConnect(Session session) {
-		logger.info("client connected: "+session.getRemoteAddress().toString());
-		logger.info("client count: "+WebServer.list.size());
+		logger.info(String.format("client connected: %s",session.getRemoteAddress().toString()));
 		WSSessions ws = WebServer.list.get(id);
 		ws.addSession(session);	
 	}
 
 	@Override
 	public void onWebSocketError(Throwable arg0) {
-		// TODO Auto-generated method stub
-		
+	    logger.warn("ws error", arg0);
 	}
 
 	@Override
