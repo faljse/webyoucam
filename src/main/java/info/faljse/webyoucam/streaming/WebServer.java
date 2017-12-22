@@ -80,7 +80,11 @@ public class WebServer extends TimerTask {
 
         float recvRate=(currentRecvBytes-lastRecvBytes)/1000000.0f*8;
         float sendRate=(currentSendBytes-lastSendBytes)/1000000.0f*8;
-        logger.info(String.format("recv/send MBit %.2f/%.2f",recvRate, sendRate) );
+        int clients=0;
+        for(WSSessions ws:list.values()){
+            clients+=ws.getCount();
+        }
+        logger.info(String.format("%d clients; recv/send MBit %.2f/%.2f", clients, recvRate, sendRate) );
 
         lastSendBytes=currentSendBytes;
         lastRecvBytes=currentRecvBytes;

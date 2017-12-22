@@ -15,6 +15,7 @@ public class WSSessions {
     private int sessionsSEQ=1;
     private byte[] buffer;
     private String id;
+    private int count=0;
 
     public WSSessions(String id) {
         this.id=id;
@@ -34,6 +35,7 @@ public class WSSessions {
 
     public synchronized void send(){
         synchronized (sessions){
+            count=sessions.size();
             Iterator<ClientSession> i = sessions.iterator();
             while (i.hasNext()) {
                 ClientSession s = i.next(); // must be called before you can call i.remove()
@@ -46,4 +48,7 @@ public class WSSessions {
             }}
     }
 
+    public int getCount() {
+        return count;
+    }
 }
