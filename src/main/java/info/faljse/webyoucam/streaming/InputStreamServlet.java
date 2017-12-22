@@ -67,6 +67,7 @@ public class InputStreamServlet extends HttpServlet implements Runnable {
                     semRecv.acquire();
                     System.arraycopy(readBuf, 0, sendBuf, 0, BUFFERSIZE);
                     semSend.release();
+                    WebServer.recvByteCount.addAndGet(readBuf.length);
                 }
             } catch (IOException e) {
                 logger.warn("Input Stream error", e);

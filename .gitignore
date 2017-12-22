@@ -1,7 +1,7 @@
 
 # Created by https://www.gitignore.io/api/windows,linux,macos,osx,intellij,java,maven,git
 dist
-
+ffmpeg
 
 ### Windows ###
 # Windows image file caches

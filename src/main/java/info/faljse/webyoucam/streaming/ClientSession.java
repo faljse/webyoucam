@@ -33,6 +33,7 @@ public class ClientSession {
             return;
         byteBuffer.rewind();
         try {
+            WebServer.sendByteCount.addAndGet(byteBuffer.remaining());
             session.getRemote().sendBytesByFuture(byteBuffer);
         }catch(Exception e){
             alive=false;
