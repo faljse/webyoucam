@@ -1,22 +1,22 @@
 package info.faljse.webyoucam.streaming;
 
+import org.eclipse.jetty.websocket.api.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.websocket.SendHandler;
-import javax.websocket.SendResult;
-import javax.websocket.Session;
 import java.nio.ByteBuffer;
 
 /**
  * Created by Martin on 12.08.2016.
  */
-public class ClientSession implements SendHandler {
+public class ClientSession {
     private final static Logger logger = LoggerFactory.getLogger(ClientSession.class);
     private final Session session;
     private ByteBuffer byteBuffer;
     private int clientID;
     private volatile boolean alive=true;
+
+
 
     public ClientSession(Session session, byte[] buffer, int clientID) {
         this.session=session;
@@ -33,19 +33,10 @@ public class ClientSession implements SendHandler {
             return;
         byteBuffer.rewind();
         try {
-            session.getAsyncRemote().sendBinary(byteBuffer, this);
+            session.getRemote().sendBytesByFuture(byteBuffer);
         }catch(Exception e){
             alive=false;
         }
-    }
-
-    @Override
-    public void onResult(SendResult result) {
-        if(!result.isOK()){
-            alive=false;
-            logger.debug("Client {} send failed", clientID, result.getException());
-        }
-
     }
 
     public boolean isAlive() {

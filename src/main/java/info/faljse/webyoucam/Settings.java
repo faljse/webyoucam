@@ -36,7 +36,8 @@ public class Settings {
             List<String> cmds=new ArrayList<String>();
             for(int i=1;i<10;i++){
                 String val = prop.getProperty("ffmpegCmd" + i);
-                cmds.add(val);
+                if(val!=null)
+                    cmds.add(val);
             }
             ffmpegCmd= cmds.toArray(new String[0]);
         } catch (IOException ex) {

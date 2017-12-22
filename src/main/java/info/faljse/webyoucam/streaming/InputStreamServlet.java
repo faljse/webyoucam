@@ -8,7 +8,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.websocket.Session;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,6 +16,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class InputStreamServlet extends HttpServlet implements Runnable {
+    private static final long serialVersionUID = 1L;
     private final static Logger logger = LoggerFactory.getLogger(InputStreamServlet.class);
     private static final int BUFFERSIZE = 1024;
     private final byte[] readBuf=new byte[BUFFERSIZE];
@@ -33,12 +33,13 @@ public class InputStreamServlet extends HttpServlet implements Runnable {
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
         String cmd=config.getInitParameter("cmd");
-        ws=new WSSessions();
+        String id=config.getInitParameter("id");
+        ws=WebServer.list.get(id);
         ws.setBuffer(sendBuf);
         if(cmd.length()>0)
             try{
-            logger.info("Running: \"{}\"", cmd);
-                Thread t=new Thread(new info.faljse.webyoucam.streaming.FFMpegThread(cmd));
+                logger.info("Running: \"{}\"", cmd);
+                Thread t=new Thread(new FFMpegThread(cmd));
                 t.start();
             }catch (Exception e){
                 logger.warn("Failed to start ffmpeg for {}",getServletContext().toString());
@@ -121,9 +122,5 @@ public class InputStreamServlet extends HttpServlet implements Runnable {
             logger.error("Send Thread Error", e);
         }
         logger.info("Send Thread terminating.");
-    }
-
-    public void addSession(Session sess) {
-        ws.addSession(sess);
     }
 }
