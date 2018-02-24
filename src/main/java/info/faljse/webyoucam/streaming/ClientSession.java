@@ -4,6 +4,7 @@ import org.eclipse.jetty.websocket.api.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 
 /**
@@ -31,7 +32,7 @@ public class ClientSession {
     public void send() {
         if(!alive)
             return;
-        byteBuffer.rewind();
+        ((Buffer)byteBuffer).rewind();
         try {
             WebServer.sendByteCount.addAndGet(byteBuffer.remaining());
             session.getRemote().sendBytesByFuture(byteBuffer);
