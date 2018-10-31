@@ -25,11 +25,11 @@ public class WSSessions {
         this.buffer=buffer;
     }
 
-    public void addSession(org.eclipse.jetty.websocket.api.Session session){
+    public void addSession(ClientSession session){
         synchronized (sessions) {
-            ClientSession s = new ClientSession(session, buffer, sessionsSEQ++);
+            ClientSession s = new ClientSession(buffer, sessionsSEQ++);
             sessions.add(s);
-            logger.info("Client added: {}", s.getSession().getRemoteAddress().toString());
+            // logger.info("Client added: {}", s.getSession().getRemoteAddress().toString());
         }
     }
 
@@ -42,7 +42,7 @@ public class WSSessions {
                 s.send();
                 if(!s.isAlive()){
                     i.remove();
-                    logger.info("Client removed: {}", s.getSession().getRemoteAddress().toString());
+                    // logger.info("Client removed: {}", s.getSession().getRemoteAddress().toString());
                 }
             }}
     }

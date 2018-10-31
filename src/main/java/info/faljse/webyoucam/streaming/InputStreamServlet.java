@@ -1,21 +1,22 @@
 package info.faljse.webyoucam.streaming;
 
+import org.nanohttpd.protocols.http.IHTTPSession;
+import org.nanohttpd.protocols.http.response.IStatus;
+import org.nanohttpd.protocols.http.response.Response;
+import org.nanohttpd.router.RouterNanoHTTPD;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class InputStreamServlet extends HttpServlet implements Runnable {
+public class InputStreamServlet extends RouterNanoHTTPD.DefaultStreamHandler implements Runnable {
     private static final long serialVersionUID = 1L;
     private final static Logger logger = LoggerFactory.getLogger(InputStreamServlet.class);
     private static final int BUFFERSIZE = 1024;
@@ -29,11 +30,11 @@ public class InputStreamServlet extends HttpServlet implements Runnable {
     private Thread sendThread;
     private WSSessions ws;
 
-    @Override
-    public void init(ServletConfig config) throws ServletException {
-        super.init(config);
-        String cmd=config.getInitParameter("cmd");
-        String id=config.getInitParameter("id");
+
+
+public InputStreamServlet() {
+String cmd="config.getInitParameter(cmd)";
+        String id="config.getInitParameter(id)";
         ws=WebServer.list.get(id);
         ws.setBuffer(sendBuf);
         if(cmd.length()>0)
@@ -42,15 +43,14 @@ public class InputStreamServlet extends HttpServlet implements Runnable {
                 Thread t=new Thread(new FFMpegThread(cmd));
                 t.start();
             }catch (Exception e){
-                logger.warn("Failed to start ffmpeg for {}",getServletContext().toString());
+                logger.warn("Failed to start ffmpeg for {}","getServletContext().toString()");
             }
         else
             logger.info("ffmpegCmd empty, not starting ffmpeg");
     }
 
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        super.doPost(req, resp);
+    public Response post(RouterNanoHTTPD.UriResource uriResource, Map<String, String> urlParams, IHTTPSession session) {
         boolean locked=rcvLock.tryLock();
         if(locked){
             try {
@@ -61,7 +61,7 @@ public class InputStreamServlet extends HttpServlet implements Runnable {
                 semSend=new Semaphore(0);
                 semRecv=new Semaphore(1);
                 sendThread.start();
-                InputStream is = req.getInputStream();
+                InputStream is = session.getInputStream();
                 while (true){
                     readBuffer(is, readBuf);
                     semRecv.acquire();
@@ -81,6 +81,8 @@ public class InputStreamServlet extends HttpServlet implements Runnable {
                 sendThread=null;
             }
         }
+
+        return Response.newFixedLengthResponse("OK");
     }
 
     private static void readBuffer(InputStream is, byte[] buffer) throws IOException {
@@ -124,4 +126,20 @@ public class InputStreamServlet extends HttpServlet implements Runnable {
         }
         logger.info("Send Thread terminating.");
     }
+
+    @Override
+    public String getMimeType() {
+        return null;
+    }
+
+    @Override
+    public IStatus getStatus() {
+        return null;
+    }
+
+    @Override
+    public InputStream getData() {
+        return null;
+    }
+
 }
