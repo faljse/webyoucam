@@ -29,7 +29,7 @@ public class ClientSession {
             return;
         ((Buffer)byteBuffer).rewind();
         try {
-            WebServer.sendByteCount.addAndGet(byteBuffer.remaining());
+            MyNanoHTTPD.sendByteCount.addAndGet(byteBuffer.remaining());
             //session.getRemote().sendBytesByFuture(byteBuffer);
         }catch(Exception e){
             alive=false;

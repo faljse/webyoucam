@@ -35,7 +35,7 @@ public class InputStreamServlet extends RouterNanoHTTPD.DefaultStreamHandler imp
 public InputStreamServlet() {
 String cmd="config.getInitParameter(cmd)";
         String id="config.getInitParameter(id)";
-        ws=WebServer.list.get(id);
+        ws=MyNanoHTTPD.list.get(id);
         ws.setBuffer(sendBuf);
         if(cmd.length()>0)
             try{
@@ -67,7 +67,7 @@ String cmd="config.getInitParameter(cmd)";
                     semRecv.acquire();
                     System.arraycopy(readBuf, 0, sendBuf, 0, BUFFERSIZE);
                     semSend.release();
-                    WebServer.recvByteCount.addAndGet(readBuf.length);
+                    MyNanoHTTPD.recvByteCount.addAndGet(readBuf.length);
                 }
             } catch (IOException e) {
                 logger.warn("Input Stream error", e);
