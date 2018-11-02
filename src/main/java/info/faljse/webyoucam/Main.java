@@ -1,5 +1,6 @@
 package info.faljse.webyoucam;
 
+import info.faljse.webyoucam.streaming.FFMpegThread;
 import info.faljse.webyoucam.streaming.MyNanoHTTPD;
 import org.fusesource.jansi.AnsiConsole;
 import org.slf4j.Logger;
@@ -18,6 +19,9 @@ public class Main {
         MyNanoHTTPD ws = new MyNanoHTTPD(9090, true);
         try {
             ws.start();
+            FFMpegThread f = new FFMpegThread(Settings.ffmpegCmd[0]);
+            new Thread(f).start();
+
             System.out.println("Server started, hit Enter to stop.\n");
             System.in.read();
         } catch (IOException ignored) {
