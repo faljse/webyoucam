@@ -17,7 +17,7 @@ public class SendThread implements Runnable{
     private final FFMpegThread ffMpegThread;
 
     private Thread sendThread;
-    private WSSessions ws;
+    public WSSessions ws;
     private final byte[] readBuf=new byte[BUFFERSIZE];
     private final byte[] sendBuf=new byte[BUFFERSIZE];
     private Semaphore semSend=null;
@@ -28,7 +28,7 @@ public class SendThread implements Runnable{
 
     public SendThread(FFMpegThread f, String id) {
         this.ffMpegThread=f;
-        ws=new WSSessions(id);
+        ws=new WSSessions(readBuf);
     }
 
     public void send(InputStream is) {
@@ -53,7 +53,6 @@ public class SendThread implements Runnable{
                 logger.warn("Input Stream error", e);
             } catch (InterruptedException e) {
                 logger.warn("Input Stream error", e);
-
             } finally {
                 rcvLock.unlock();
                 // shutDown();
@@ -61,9 +60,6 @@ public class SendThread implements Runnable{
                 sendThread=null;
             }
         }
-
-
-
     }
     @Override
     public void run() {
@@ -106,7 +102,4 @@ public class SendThread implements Runnable{
                 return;
         }
     }
-
-
-
 }

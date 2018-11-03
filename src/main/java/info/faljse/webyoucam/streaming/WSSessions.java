@@ -1,4 +1,6 @@
 package info.faljse.webyoucam.streaming;
+import org.nanohttpd.protocols.http.IHTTPSession;
+import org.nanohttpd.protocols.http.response.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,22 +16,20 @@ public class WSSessions {
     private final static Logger logger = LoggerFactory.getLogger(WSSessions.class);
     private int sessionsSEQ=1;
     private byte[] buffer;
-    private String id;
     private int count=0;
 
-    public WSSessions(String id) {
-        this.id=id;
-    }
-
-    public void setBuffer(byte[] buffer){
+    public WSSessions(byte[] buffer) {
         this.buffer=buffer;
     }
 
-    public void addSession(ClientSession session){
+
+    public ClientSession createAddSession(IHTTPSession request, Response response){
         synchronized (sessions) {
-            ClientSession s = new ClientSession(buffer, sessionsSEQ++);
+            ClientSession s = new ClientSession(buffer, sessionsSEQ++, request, response);
             sessions.add(s);
-            // logger.info("Client added: {}", s.getSession().getRemoteAddress().toString());
+            logger.info("Client added: {}", "s.getRemoteAddress().toString()");
+
+            return s;
         }
     }
 
@@ -39,10 +39,10 @@ public class WSSessions {
             Iterator<ClientSession> i = sessions.iterator();
             while (i.hasNext()) {
                 ClientSession s = i.next(); // must be called before you can call i.remove()
-                s.send();
+                s.send(buffer);
                 if(!s.isAlive()){
                     i.remove();
-                    // logger.info("Client removed: {}", s.getSession().getRemoteAddress().toString());
+                    logger.info("Client removed: {}", s.toString());
                 }
             }}
     }
@@ -50,4 +50,5 @@ public class WSSessions {
     public int getCount() {
         return count;
     }
+
 }
