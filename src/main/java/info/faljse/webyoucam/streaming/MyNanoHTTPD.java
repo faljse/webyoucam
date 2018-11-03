@@ -33,6 +33,7 @@ package info.faljse.webyoucam.streaming;
  * #L%
  */
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.security.MessageDigest;
@@ -49,6 +50,7 @@ import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import info.faljse.webyoucam.Main;
+import info.faljse.webyoucam.Settings;
 import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.response.IStatus;
 import org.nanohttpd.protocols.http.response.Response;
@@ -77,12 +79,8 @@ public class MyNanoHTTPD extends RouterNanoHTTPD implements Runnable{
     public static AtomicLong sendByteCount=new AtomicLong();
     public static AtomicLong recvByteCount=new AtomicLong();
     private java.util.Timer t=new Timer();
-
-
     private long lastRecvBytes=0;
     private long lastSendBytes=0;
-
-
     private final boolean debug;
 
     public MyNanoHTTPD(int port, boolean debug) {
@@ -96,7 +94,12 @@ public class MyNanoHTTPD extends RouterNanoHTTPD implements Runnable{
     public void addMappings() {
         super.addMappings();
 
+        FFMpegThread f = new FFMpegThread(Settings.ffmpegCmd[0]);
+        new Thread(f).start();
+        SendThread st=new SendThread(f, "1");
+        new Thread(st).start();
 
+        addRoute("/stream/input/1", InputStreamServlet.class, st);
         addRoute("/blocks", BlockHandler.class);
         addRoute("/user/help", BlockHandler.class);
         addRoute("/user/:id", BlockHandler.class);
@@ -108,8 +111,8 @@ public class MyNanoHTTPD extends RouterNanoHTTPD implements Runnable{
         addRoute("/toBeDeleted", String.class);
         removeRoute("/toBeDeleted");
 
-        addRoute("/static(.)+", IndexServlet.StaticPageTestHandler.class, new File("webroot/").getAbsoluteFile());
-        addRoute("/", IndexServlet.StaticPageTestHandler.class, new File("webroot/index.html").getAbsoluteFile());
+        addRoute("/static(.)+", StaticPageTestHandler.class, new File("webroot/").getAbsoluteFile());
+        addRoute("/", StaticPageTestHandler.class, new File("webroot/index.html").getAbsoluteFile());
     }
 
 
@@ -182,22 +185,7 @@ public class MyNanoHTTPD extends RouterNanoHTTPD implements Runnable{
         }
     }
 
-    @Override
-    public void run() {
-        long currentSendBytes=sendByteCount.get();
-        long currentRecvBytes=recvByteCount.get();
 
-        float recvRate=(currentRecvBytes-lastRecvBytes)/1000000.0f*8;
-        float sendRate=(currentSendBytes-lastSendBytes)/1000000.0f*8;
-        int clients=0;
-        for(WSSessions ws:list.values()){
-            clients+=ws.getCount();
-        }
-        logger.info(String.format("%d clients; recv/send MBit %.2f/%.2f", clients, recvRate, sendRate) );
-
-        lastSendBytes=currentSendBytes;
-        lastRecvBytes=currentRecvBytes;
-    }
 
     public static String makeAcceptKey(String key) throws NoSuchAlgorithmException {
         MessageDigest md = MessageDigest.getInstance("SHA-1");
@@ -283,5 +271,31 @@ public class MyNanoHTTPD extends RouterNanoHTTPD implements Runnable{
 
             return Response.newFixedLengthResponse(blocks.toString());
         }
+    }
+    public static class StaticPageTestHandler extends RouterNanoHTTPD.StaticPageHandler {
+
+        @Override
+        protected BufferedInputStream fileToInputStream(File fileOrdirectory) throws IOException {
+            if ("exception.html".equals(fileOrdirectory.getName())) {
+                throw new IOException("trigger something wrong");
+            }
+            return super.fileToInputStream(fileOrdirectory);
+        }
+    }
+    @Override
+    public void run() {
+        long currentSendBytes=sendByteCount.get();
+        long currentRecvBytes=recvByteCount.get();
+
+        float recvRate=(currentRecvBytes-lastRecvBytes)/1000000.0f*8;
+        float sendRate=(currentSendBytes-lastSendBytes)/1000000.0f*8;
+        int clients=0;
+        for(WSSessions ws:list.values()){
+            clients+=ws.getCount();
+        }
+        logger.info(String.format("%d clients; recv/send MBit %.2f/%.2f", clients, recvRate, sendRate) );
+
+        lastSendBytes=currentSendBytes;
+        lastRecvBytes=currentRecvBytes;
     }
 }
