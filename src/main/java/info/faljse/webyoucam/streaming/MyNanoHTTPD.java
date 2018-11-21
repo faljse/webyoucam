@@ -95,8 +95,9 @@ public class MyNanoHTTPD extends RouterNanoHTTPD implements Runnable{
     @Override
     public void addMappings() {
         super.addMappings();
+        InputConfig ic=new InputConfig();
 
-
+        addRoute("/input/stream", InputStreamServlet.class, ic);
         addRoute("/blocks", BlockHandler.class);
         addRoute("/user/help", BlockHandler.class);
         addRoute("/user/:id", BlockHandler.class);

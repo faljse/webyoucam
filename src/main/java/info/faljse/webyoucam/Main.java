@@ -14,7 +14,7 @@ import java.io.IOException;
 public class Main {
     private final static Logger logger = LoggerFactory.getLogger(Main.class);
 
-    public static void main(String[] args){
+    public static void main(String[] args) {
         AnsiConsole.systemInstall();
         MyNanoHTTPD ws = new MyNanoHTTPD(9090, true);
         try {
@@ -26,8 +26,6 @@ public class Main {
             System.in.read();
         } catch (IOException ignored) {
         }
-
         System.out.println("Server stopped.\n");
-
     }
 }

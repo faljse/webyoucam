@@ -1,8 +1,5 @@
 package info.faljse.webyoucam.streaming;
 
-import freemarker.template.TemplateException;
-import info.faljse.webyoucam.Freemarker;
-import info.faljse.webyoucam.Settings;
 import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.response.IStatus;
 import org.nanohttpd.protocols.http.response.Response;
@@ -96,6 +93,7 @@ public static class StaticPageTestHandler extends RouterNanoHTTPD.StaticPageHand
     @Override
     public void addMappings() {
         super.addMappings();
+        addRoute("/input/stream", InputStreamServlet.class);
         addRoute("/user", UserHandler.class);
         addRoute("/user", UserHandler.class); // add it twice to execute the
         // priority == priority case

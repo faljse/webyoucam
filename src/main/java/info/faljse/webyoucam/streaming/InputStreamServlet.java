@@ -30,12 +30,11 @@ public class InputStreamServlet extends RouterNanoHTTPD.DefaultStreamHandler imp
     private Thread sendThread;
     private WSSessions ws;
 
-
-
-public InputStreamServlet() {
-String cmd="config.getInitParameter(cmd)";
+    public InputStreamServlet() {
+        String cmd="config.getInitParameter(cmd)";
         String id="config.getInitParameter(id)";
-        ws=MyNanoHTTPD.list.get(id);
+        // ws=MyNanoHTTPD.list.get(id);
+        ws=new WSSessions("1");
         ws.setBuffer(sendBuf);
         if(cmd.length()>0)
             try{
@@ -81,7 +80,6 @@ String cmd="config.getInitParameter(cmd)";
                 sendThread=null;
             }
         }
-
         return Response.newFixedLengthResponse("OK");
     }
 
@@ -141,5 +139,4 @@ String cmd="config.getInitParameter(cmd)";
     public InputStream getData() {
         return null;
     }
-
 }
