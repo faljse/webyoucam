@@ -33,6 +33,7 @@ package info.faljse.webyoucam.streaming;
  * #L%
  */
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.security.MessageDigest;
@@ -49,6 +50,7 @@ import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import info.faljse.webyoucam.Main;
+import info.faljse.webyoucam.Settings;
 import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.response.IStatus;
 import org.nanohttpd.protocols.http.response.Response;
@@ -67,7 +69,6 @@ import org.slf4j.LoggerFactory;
 public class MyNanoHTTPD extends RouterNanoHTTPD implements Runnable{
     private final static org.slf4j.Logger logger = LoggerFactory.getLogger(MyNanoHTTPD.class);
 
-
     /**
      * logger to log to.
      */
@@ -77,12 +78,8 @@ public class MyNanoHTTPD extends RouterNanoHTTPD implements Runnable{
     public static AtomicLong sendByteCount=new AtomicLong();
     public static AtomicLong recvByteCount=new AtomicLong();
     private java.util.Timer t=new Timer();
-
-
     private long lastRecvBytes=0;
     private long lastSendBytes=0;
-
-
     private final boolean debug;
 
     public MyNanoHTTPD(int port, boolean debug) {
@@ -95,34 +92,28 @@ public class MyNanoHTTPD extends RouterNanoHTTPD implements Runnable{
     @Override
     public void addMappings() {
         super.addMappings();
-        InputConfig ic=new InputConfig();
 
-        addRoute("/input/stream", InputStreamServlet.class, ic);
-        addRoute("/blocks", BlockHandler.class);
-        addRoute("/user/help", BlockHandler.class);
+        FFMpegThread f = new FFMpegThread(Settings.ffmpegCmd[0]);
+        new Thread(f).start();
+        SendThread st=new SendThread(f, "1");
+        new Thread(st).start();
+        MyNanoHTTPD.list.put("1",st.ws);
+
+        addRoute("/stream/input/1", InputStreamServlet.class, st);
+
         addRoute("/user/:id", BlockHandler.class);
-        addRoute("/general/:param1/:param2", GeneralHandler.class);
-        addRoute("/photos/:customer_id/:photo_id", null);
-        addRoute("/test", String.class);
         addRoute("/interface", UriResponder.class); // this will cause an error
-        // when called
         addRoute("/toBeDeleted", String.class);
         removeRoute("/toBeDeleted");
 
-        addRoute("/static(.)+", IndexServlet.StaticPageTestHandler.class, new File("webroot/").getAbsoluteFile());
-        addRoute("/", IndexServlet.StaticPageTestHandler.class, new File("webroot/index.html").getAbsoluteFile());
+        addRoute("/static(.)+", StaticPageTestHandler.class, new File("webroot/").getAbsoluteFile());
+        //addRoute("/", StaticPageTestHandler.class, new File("webroot/index.html").getAbsoluteFile());
     }
-
-
     protected WebSocket openWebSocket(IHTTPSession handshake) {
         return new MyWebSocket(this, handshake);
     }
 
-
-
-
     private static class MyWebSocket extends WebSocket {
-
         private final MyNanoHTTPD server;
 
         public MyWebSocket(MyNanoHTTPD server, IHTTPSession handshakeRequest) {
@@ -132,10 +123,12 @@ public class MyNanoHTTPD extends RouterNanoHTTPD implements Runnable{
 
         @Override
         protected void onOpen() {
-            ClientSession s=new ClientSession(null,1);
+
+            WSSessions ws = MyNanoHTTPD.list.get("1");
+            if(ws==null)
+                return;
+            ClientSession s=            ws.createAddSession(getHandshakeRequest(), getHandshakeResponse());
             logger.info(String.format("client connected: %s",getHandshakeRequest().getRemoteIpAddress().toString()));
-            WSSessions ws = MyNanoHTTPD.list.get(1);
-            ws.addSession(s);
         }
 
         @Override
@@ -183,23 +176,6 @@ public class MyNanoHTTPD extends RouterNanoHTTPD implements Runnable{
         }
     }
 
-    @Override
-    public void run() {
-        long currentSendBytes=sendByteCount.get();
-        long currentRecvBytes=recvByteCount.get();
-
-        float recvRate=(currentRecvBytes-lastRecvBytes)/1000000.0f*8;
-        float sendRate=(currentSendBytes-lastSendBytes)/1000000.0f*8;
-        int clients=0;
-        for(WSSessions ws:list.values()){
-            clients+=ws.getCount();
-        }
-        logger.info(String.format("%d clients; recv/send MBit %.2f/%.2f", clients, recvRate, sendRate) );
-
-        lastSendBytes=currentSendBytes;
-        lastRecvBytes=currentRecvBytes;
-    }
-
     public static String makeAcceptKey(String key) throws NoSuchAlgorithmException {
         MessageDigest md = MessageDigest.getInstance("SHA-1");
         String text = key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
@@ -208,7 +184,6 @@ public class MyNanoHTTPD extends RouterNanoHTTPD implements Runnable{
         Base64.Encoder b64encoder = Base64.getEncoder();
         return b64encoder.encodeToString(sha1hash);
     }
-
 
     private boolean isWebSocketConnectionHeader(Map<String, String> headers) {
         String connection = (String)headers.get("connection");
@@ -254,14 +229,12 @@ public class MyNanoHTTPD extends RouterNanoHTTPD implements Runnable{
     protected final class Interceptor implements IHandler<IHTTPSession, Response> {
         public Interceptor() {
         }
-
         public Response handle(IHTTPSession input) {
             return MyNanoHTTPD.this.handleWebSocket(input);
         }
     }
 
     public static class BlockHandler extends DefaultHandler {
-
         @Override
         public String getMimeType() {
             return MIME_PLAINTEXT;
@@ -279,10 +252,35 @@ public class MyNanoHTTPD extends RouterNanoHTTPD implements Runnable{
 
         @Override
         public Response get(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session) {
-
             JsonArray blocks = Json.array();
-
             return Response.newFixedLengthResponse(blocks.toString());
         }
+    }
+
+    public static class StaticPageTestHandler extends RouterNanoHTTPD.StaticPageHandler {
+        @Override
+        protected BufferedInputStream fileToInputStream(File fileOrdirectory) throws IOException {
+            if ("exception.html".equals(fileOrdirectory.getName())) {
+                throw new IOException("trigger something wrong");
+            }
+            return super.fileToInputStream(fileOrdirectory);
+        }
+    }
+
+    @Override
+    public void run() {
+        long currentSendBytes=sendByteCount.get();
+        long currentRecvBytes=recvByteCount.get();
+
+        float recvRate=(currentRecvBytes-lastRecvBytes)/1000000.0f*8;
+        float sendRate=(currentSendBytes-lastSendBytes)/1000000.0f*8;
+        int clients=0;
+        for(WSSessions ws:list.values()){
+            clients+=ws.getCount();
+        }
+        logger.info(String.format("%d clients; recv/send MBit %.2f/%.2f", clients, recvRate, sendRate) );
+
+        lastSendBytes=currentSendBytes;
+        lastRecvBytes=currentRecvBytes;
     }
 }

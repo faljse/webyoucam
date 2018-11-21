@@ -16,12 +16,9 @@ public class Main {
 
     public static void main(String[] args) {
         AnsiConsole.systemInstall();
-        MyNanoHTTPD ws = new MyNanoHTTPD(9090, true);
+        MyNanoHTTPD ws = new MyNanoHTTPD(Settings.port, true);
         try {
             ws.start();
-            FFMpegThread f = new FFMpegThread(Settings.ffmpegCmd[0]);
-            new Thread(f).start();
-
             System.out.println("Server started, hit Enter to stop.\n");
             System.in.read();
         } catch (IOException ignored) {

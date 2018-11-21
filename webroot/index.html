@@ -11,9 +11,8 @@
 <body>
 <section class="section">
     <div class="container">
-           <#list cmd as c>
                <div>ffmpegCmd${c?index+1}=${c}</div>
-               <canvas id="videoCanvas_${c?index+1}" width="640" height="480">
+               <canvas id="videoCanvas_1" width="640" height="480">
                    <p>
                        Please use a browser that supports the Canvas Element, like
                        <a href="http://www.google.com/chrome">Chrome</a>,
@@ -26,10 +25,9 @@
                        var l = window.location;
                        return ((l.protocol === "https:") ? "wss://" : "ws://") + l.host + l.pathname + s;
                    }
-                   var canvas_${c?index+1} = document.getElementById('videoCanvas_${c?index+1}');
-                   var player_${c?index+1} = new JSMpeg.Player(url('stream/output/${c?index+1}'), {canvas:canvas_${c?index+1}});
+                   var canvas = document.getElementById('videoCanvas_1');
+                   var player = new JSMpeg.Player(url('stream/output/1'), {canvas:canvas});
                </script>
-           </#list>
     </div>
 </section>
 </body>

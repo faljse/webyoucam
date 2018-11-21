@@ -3,10 +3,10 @@ package info.faljse.webyoucam.streaming;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by Martin on 19.08.2016.
@@ -14,6 +14,8 @@ import java.io.InputStreamReader;
 public class FFMpegThread implements Runnable {
     private final static Logger logger = LoggerFactory.getLogger(FFMpegThread.class);
     private final String cmd;
+
+
 
     public FFMpegThread(String cmd){
         this.cmd=cmd;
@@ -33,6 +35,7 @@ public class FFMpegThread implements Runnable {
             }
         }
     }
+
 
     private void runFFmpeg() throws IOException {
         ProcessBuilder pb =
@@ -57,4 +60,8 @@ public class FFMpegThread implements Runnable {
         }
 
     }
+
+
+
+
 }
