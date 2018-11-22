@@ -1,14 +1,10 @@
 package info.faljse.webyoucam.streaming;
 
-import io.undertow.server.session.Session;
 import io.undertow.websockets.core.WebSocketChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Vector;
 
 /**
  * Created by Martin on 10.08.2016.

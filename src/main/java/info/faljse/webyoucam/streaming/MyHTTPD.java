@@ -33,19 +33,11 @@ package info.faljse.webyoucam.streaming;
  * #L%
  */
 
-import java.io.IOException;
-import java.nio.file.Paths;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.logging.Logger;
-
 import info.faljse.webyoucam.Settings;
-
 import io.undertow.Handlers;
 import io.undertow.Undertow;
 import io.undertow.server.handlers.resource.PathResourceManager;
 import io.undertow.websockets.WebSocketConnectionCallback;
-import io.undertow.websockets.WebSocketExtension;
 import io.undertow.websockets.WebSocketProtocolHandshakeHandler;
 import io.undertow.websockets.core.AbstractReceiveListener;
 import io.undertow.websockets.core.StreamSourceFrameChannel;
@@ -54,15 +46,16 @@ import io.undertow.websockets.core.protocol.Handshake;
 import io.undertow.websockets.core.protocol.version07.Hybi07Handshake;
 import io.undertow.websockets.core.protocol.version08.Hybi08Handshake;
 import io.undertow.websockets.core.protocol.version13.Hybi13Handshake;
-import io.undertow.websockets.extensions.ExtensionFunction;
-import io.undertow.websockets.extensions.ExtensionHandshake;
-import io.undertow.websockets.extensions.NoopExtensionFunction;
-import io.undertow.websockets.jsr.ExtensionImpl;
 import io.undertow.websockets.spi.WebSocketHttpExchange;
 import org.slf4j.LoggerFactory;
 
 import javax.servlet.ServletException;
-import static io.undertow.Handlers.websocket;
+import java.io.IOException;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.logging.Logger;
+
 import static io.undertow.Handlers.resource;
 
 public class MyHTTPD implements Runnable {

@@ -1,6 +1,5 @@
 package info.faljse.webyoucam;
 
-import info.faljse.webyoucam.streaming.FFMpegThread;
 import info.faljse.webyoucam.streaming.MyHTTPD;
 import org.fusesource.jansi.AnsiConsole;
 import org.slf4j.Logger;
