@@ -17,15 +17,14 @@ public class WSSessions {
     private ArrayList<ClientSession> sessions=new ArrayList<>();
     private final static Logger logger = LoggerFactory.getLogger(WSSessions.class);
     private int sessionsSEQ=1;
-    private byte[] buffer;
 
-    public WSSessions(byte[] buffer) {
-        this.buffer=buffer;
+    public WSSessions() {
+
     }
 
     public ClientSession createAddSession(WebSocketChannel session){
         synchronized (sessions) {
-            ClientSession s = new ClientSession(buffer, sessionsSEQ++, session);
+            ClientSession s = new ClientSession(sessionsSEQ++, session);
             sessions.add(s);
 
             logger.info("Client added: {}", session.getPeerAddress());
@@ -33,7 +32,7 @@ public class WSSessions {
         }
     }
 
-    public void send(){
+    public void send(byte[] buffer){
         sessions.removeIf(cs -> !cs.isAlive());
         synchronized (sessions) {
             ArrayList<ClientSession> scopy = new ArrayList<>(sessions);

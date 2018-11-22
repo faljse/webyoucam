@@ -20,15 +20,15 @@ public class SendThread implements Runnable{
     public WSSessions ws;
     private final byte[] readBuf=new byte[BUFFERSIZE];
     private final byte[] sendBuf=new byte[BUFFERSIZE];
-    private Semaphore semSend=null;
-    private Semaphore semRecv=null;
+    private Semaphore semSend;
+    private Semaphore semRecv;
     private final Lock rcvLock=new ReentrantLock();
-    private volatile boolean _running = false;
+    private volatile boolean _running;
     private static final int BUFFERSIZE = 1024;
 
     public SendThread(FFMpegThread f, String id) {
         this.ffMpegThread=f;
-        ws=new WSSessions(readBuf);
+        ws=new WSSessions();
         Thread.currentThread().setName("Stream input");
         sendThread = new Thread(this);
         sendThread.setName("Websocket send");
@@ -56,7 +56,7 @@ public class SendThread implements Runnable{
                 logger.warn("Input Stream error", e);
             } finally {
                 rcvLock.unlock();
-                // shutDown();
+                shutDown();
                 semSend=null;
                 sendThread=null;
             }
@@ -67,7 +67,9 @@ public class SendThread implements Runnable{
         try {
             while (_running) {
                 semSend.acquire();
-                ws.send();
+                byte[] tmpBuf=new byte[sendBuf.length];
+                System.arraycopy(sendBuf,0,tmpBuf,0,sendBuf.length);
+                ws.send(tmpBuf);
                 semRecv.release();
             }
         } catch (InterruptedException e) {

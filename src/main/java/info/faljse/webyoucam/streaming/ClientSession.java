@@ -22,7 +22,7 @@ public class ClientSession implements WebSocketCallback {
 
     private volatile boolean alive=true;
 
-    public ClientSession(byte[] buffer, int clientID, WebSocketChannel session) {
+    public ClientSession(int clientID, WebSocketChannel session) {
         this.session=session;
     }
 
