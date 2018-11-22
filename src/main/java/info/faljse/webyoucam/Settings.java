@@ -44,7 +44,7 @@ public class Settings {
                 try {
                     input.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    logger.warn("close",e);
                 }
             }
         }

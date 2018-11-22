@@ -15,8 +15,6 @@ public class FFMpegThread implements Runnable {
     private final static Logger logger = LoggerFactory.getLogger(FFMpegThread.class);
     private final String cmd;
 
-
-
     public FFMpegThread(String cmd){
         this.cmd=cmd;
     }

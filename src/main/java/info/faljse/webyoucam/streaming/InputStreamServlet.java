@@ -19,14 +19,11 @@ public class InputStreamServlet implements HttpHandler {
             exchange.dispatch(this);
             return;
         }
-
-
         Map<String, Deque<String>> params = exchange.getQueryParameters();
         String id = params.get("id").getFirst();
         SendThread st = MyHTTPD.list.get(id);
         exchange.startBlocking();
         st.send(exchange.getInputStream());
         return;
-
     }
 }

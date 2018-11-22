@@ -22,9 +22,8 @@ public class Main {
             System.out.println("Server started, hit Enter to stop.\n");
             System.in.read();
         } catch (ServletException|IOException e) {
-            logger.warn("asd",e);
+            logger.warn("asd", e);
         }
-
         System.out.println("Server stopped.\n");
     }
 }

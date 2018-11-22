@@ -22,7 +22,6 @@ public class WSSessions {
         synchronized (sessions) {
             ClientSession s = new ClientSession(sessionsSEQ++, session);
             sessions.add(s);
-
             logger.info("Client added: {}", session.getPeerAddress());
             return s;
         }
