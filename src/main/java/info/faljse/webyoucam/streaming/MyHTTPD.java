@@ -95,32 +95,38 @@ public class MyHTTPD implements Runnable {
         WebSocketProtocolHandshakeHandler handler = new WebSocketProtocolHandshakeHandler(handshakes, new WebSocketConnectionCallback() {
             @Override
             public void onConnect(WebSocketHttpExchange exchange, WebSocketChannel channel) {
-                channel.getReceiveSetter().set(new MyWebSocket(channel));
-                channel.resumeReceives();
+                String id=exchange.getRequestParameters().get("id").get(0);
+                channel.getReceiveSetter().set(new MyWebSocket(id, channel));
             }
         });
 
         builder.addHttpListener(port, "0.0.0.0");
-        builder.setHandler(Handlers.path()
-                .addPrefixPath("/stream/input/", new InputStreamServlet())
-                .addPrefixPath("/stream/output/", handler)
-                .addPrefixPath("/", resource(new PathResourceManager(Paths.get("webroot"), 100))
+        builder.setHandler(Handlers.routing()
+                .post("/stream/input/{id}", new InputStreamServlet())
+                .get("/stream/output/{id}", handler)
+                .get("/*", resource(new PathResourceManager(Paths.get("webroot"), 100))
                         .setDirectoryListingEnabled(true))
         );
         server=builder.build();
         server.start();
 
-        FFMpegThread f = new FFMpegThread(Settings.ffmpegCmd[0]);
-        new Thread(f).start();
-        SendThread st = new SendThread(f, "1");
-        new Thread(st).start();
-        MyHTTPD.list.put("1", st);
+        for(int i=0;i<10;i++) {
+            String cmd=Settings.ffmpegCmd[i];
+            if(cmd==null)
+                continue;
+            FFMpegThread f = new FFMpegThread(cmd);
+            new Thread(f).start();
+            SendThread st = new SendThread();
+            new Thread(st).start();
+            MyHTTPD.list.put(String.valueOf(i), st);
+        }
+
     }
 
     private static class MyWebSocket extends AbstractReceiveListener {
-        public MyWebSocket(WebSocketChannel channel) {
+        public MyWebSocket(String id, WebSocketChannel channel) {
             System.out.println("open" + this.toString());
-            SendThread st = MyHTTPD.list.get("1");
+            SendThread st = MyHTTPD.list.get(id);
             if (st == null)
                 return;
             ClientSession s = st.ws.createAddSession(channel);

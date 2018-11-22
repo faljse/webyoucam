@@ -30,11 +30,10 @@ public class InputStreamServlet implements HttpHandler {
 
 
         Map<String, Deque<String>> params = exchange.getQueryParameters();
-        String id = "1";//params.get("id").getFirst();
+        String id = params.get("id").getFirst();
         SendThread st = MyHTTPD.list.get(id);
         exchange.startBlocking();
         st.send(exchange.getInputStream());
-        System.out.println("posted");
         return;
 
     }

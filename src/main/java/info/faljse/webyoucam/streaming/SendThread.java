@@ -14,7 +14,6 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class SendThread implements Runnable{
     private final static Logger logger = LoggerFactory.getLogger(FFMpegThread.class);
-    private final FFMpegThread ffMpegThread;
 
     private Thread sendThread;
     public WSSessions ws;
@@ -26,8 +25,7 @@ public class SendThread implements Runnable{
     private volatile boolean _running;
     private static final int BUFFERSIZE = 1024;
 
-    public SendThread(FFMpegThread f, String id) {
-        this.ffMpegThread=f;
+    public SendThread() {
         ws=new WSSessions();
         Thread.currentThread().setName("Stream input");
         sendThread = new Thread(this);
@@ -42,7 +40,6 @@ public class SendThread implements Runnable{
         boolean locked=rcvLock.tryLock();
         if(locked){
             try {
-
                 while (true){
                     readBuffer(is, readBuf);
                     semRecv.acquire();
@@ -68,7 +65,7 @@ public class SendThread implements Runnable{
             while (_running) {
                 semSend.acquire();
                 byte[] tmpBuf=new byte[sendBuf.length];
-                System.arraycopy(sendBuf,0,tmpBuf,0,sendBuf.length);
+                System.arraycopy(sendBuf,0, tmpBuf,0, sendBuf.length);
                 ws.send(tmpBuf);
                 semRecv.release();
             }

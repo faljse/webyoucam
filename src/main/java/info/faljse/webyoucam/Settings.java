@@ -33,13 +33,11 @@ public class Settings {
             prop.load(input);
             port=Integer.parseInt(prop.getProperty("port"));
 
-            List<String> cmds=new ArrayList<String>();
-            for(int i=1;i<10;i++){
+            for(int i=0;i<10;i++){
                 String val = prop.getProperty("ffmpegCmd" + i);
                 if(val!=null)
-                    cmds.add(val);
+                    ffmpegCmd[i]=val;
             }
-            ffmpegCmd= cmds.toArray(new String[0]);
         } catch (IOException ex) {
             logger.error("Cant load config", ex);
             ex.printStackTrace();
