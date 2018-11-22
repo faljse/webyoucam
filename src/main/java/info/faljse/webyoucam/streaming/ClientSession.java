@@ -1,37 +1,37 @@
 package info.faljse.webyoucam.streaming;
 
-import org.nanohttpd.protocols.http.IHTTPSession;
-import org.nanohttpd.protocols.http.response.Response;
+
+import io.undertow.server.session.Session;
+import io.undertow.websockets.core.WebSocketCallback;
+import io.undertow.websockets.core.WebSocketChannel;
+import io.undertow.websockets.core.WebSocketFrameType;
+import io.undertow.websockets.core.WebSockets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
-import java.nio.Buffer;
 import java.nio.ByteBuffer;
-import java.nio.channels.AsynchronousSocketChannel;
+
 
 /**
  * Created by Martin on 12.08.2016.
  */
-public class ClientSession {
+public class ClientSession implements WebSocketCallback {
     private final static Logger logger = LoggerFactory.getLogger(ClientSession.class);
-    private final IHTTPSession req;
-    private final Response response;
+    private final WebSocketChannel session;
+
     private volatile boolean alive=true;
 
-    public ClientSession(byte[] buffer, int clientID, IHTTPSession handshakeRequest, Response response) {
-        this.req=handshakeRequest;
-        this.response=response;
+    public ClientSession(byte[] buffer, int clientID, WebSocketChannel session) {
+        this.session=session;
     }
 
     public void send(byte[] buffer) {
         if(!alive)
             return;
         try {
-            MyNanoHTTPD.sendByteCount.addAndGet(buffer.length);
-            ByteArrayOutputStream baos = new ByteArrayOutputStream(buffer.length);
-            baos.writeBytes(buffer);
-            response.send((baos));
+            MyHTTPD.sendByteCount.addAndGet(buffer.length);
+            WebSockets.sendBinary(ByteBuffer.wrap(buffer),session,this);
         }catch(Exception e){
             alive=false;
         }
@@ -41,4 +41,13 @@ public class ClientSession {
         return alive;
     }
 
+    @Override
+    public void complete(WebSocketChannel webSocketChannel, Object o) {
+
+    }
+
+    @Override
+    public void onError(WebSocketChannel webSocketChannel, Object o, Throwable throwable) {
+
+    }
 }

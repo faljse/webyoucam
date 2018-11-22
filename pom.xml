@@ -8,9 +8,9 @@
     <version>1.0-SNAPSHOT</version>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <jetty.version>9.4.7.v20170914</jetty.version>
+        <undertow.version>2.0.15.Final</undertow.version>
+
         <slf4j.version>1.7.25</slf4j.version>
-        <freemarker.version>2.3.27-incubating</freemarker.version>
     </properties>
     <dependencies>
         <dependency>
@@ -23,26 +23,7 @@
             <artifactId>logback-classic</artifactId>
             <version>1.2.3</version>
         </dependency>
-        <dependency>
-            <groupId>org.freemarker</groupId>
-            <artifactId>freemarker-gae</artifactId>
-            <version>${freemarker.version}</version>
-        </dependency>
-        <dependency>
-            <artifactId>nanohttpd</artifactId>
-            <groupId>org.nanohttpd</groupId>
-            <version>2.3.2-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <artifactId>nanohttpd-nanolets</artifactId>
-            <groupId>org.nanohttpd</groupId>
-            <version>2.3.2-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <artifactId>nanohttpd-websocket</artifactId>
-            <groupId>org.nanohttpd</groupId>
-            <version>2.3.2-SNAPSHOT</version>
-        </dependency>
+
         <!-- https://mvnrepository.com/artifact/org.fusesource.jansi/jansi -->
         <dependency>
             <groupId>org.fusesource.jansi</groupId>
@@ -53,6 +34,21 @@
             <groupId>com.eclipsesource.minimal-json</groupId>
             <artifactId>minimal-json</artifactId>
             <version>0.9.5</version>
+        </dependency>
+        <dependency>
+            <groupId>io.undertow</groupId>
+            <artifactId>undertow-core</artifactId>
+            <version>${undertow.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.undertow</groupId>
+            <artifactId>undertow-servlet</artifactId>
+            <version>${undertow.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.undertow</groupId>
+            <artifactId>undertow-websockets-jsr</artifactId>
+            <version>${undertow.version}</version>
         </dependency>
     </dependencies>
     <build>

@@ -1,11 +1,12 @@
 package info.faljse.webyoucam;
 
 import info.faljse.webyoucam.streaming.FFMpegThread;
-import info.faljse.webyoucam.streaming.MyNanoHTTPD;
+import info.faljse.webyoucam.streaming.MyHTTPD;
 import org.fusesource.jansi.AnsiConsole;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.servlet.ServletException;
 import java.io.IOException;
 
 /**
@@ -16,13 +17,15 @@ public class Main {
 
     public static void main(String[] args) {
         AnsiConsole.systemInstall();
-        MyNanoHTTPD ws = new MyNanoHTTPD(Settings.port, true);
+        MyHTTPD server = new MyHTTPD(Settings.port, true);
         try {
-            ws.start();
+            server.start();
             System.out.println("Server started, hit Enter to stop.\n");
             System.in.read();
-        } catch (IOException ignored) {
+        } catch (ServletException|IOException e) {
+            logger.warn("asd",e);
         }
+
         System.out.println("Server stopped.\n");
     }
 }

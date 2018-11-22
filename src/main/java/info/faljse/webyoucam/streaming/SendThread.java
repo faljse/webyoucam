@@ -29,25 +29,26 @@ public class SendThread implements Runnable{
     public SendThread(FFMpegThread f, String id) {
         this.ffMpegThread=f;
         ws=new WSSessions(readBuf);
+        Thread.currentThread().setName("Stream input");
+        sendThread = new Thread(this);
+        sendThread.setName("Websocket send");
+        _running = true;
+        semSend=new Semaphore(0);
+        semRecv=new Semaphore(1);
+        sendThread.start();
     }
 
     public void send(InputStream is) {
         boolean locked=rcvLock.tryLock();
         if(locked){
             try {
-                Thread.currentThread().setName("Stream input");
-                sendThread = new Thread(this);
-                sendThread.setName("Websocket send");
-                _running = true;
-                semSend=new Semaphore(0);
-                semRecv=new Semaphore(1);
-                sendThread.start();
+
                 while (true){
                     readBuffer(is, readBuf);
                     semRecv.acquire();
                     System.arraycopy(readBuf, 0, sendBuf, 0, BUFFERSIZE);
                     semSend.release();
-                    MyNanoHTTPD.recvByteCount.addAndGet(readBuf.length);
+                    MyHTTPD.recvByteCount.addAndGet(readBuf.length);
                 }
             } catch (IOException e) {
                 logger.warn("Input Stream error", e);
