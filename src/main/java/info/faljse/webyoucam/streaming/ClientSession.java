@@ -19,12 +19,12 @@ public class ClientSession implements WebSocketCallback {
         this.session=session;
     }
 
-    public void send(byte[] buffer, int offset, int buffersize) {
+    public void send(byte[] buffer, int offset, int length) {
         if(!alive)
             return;
         try {
-            MyHTTPD.sendByteCount.addAndGet(buffer.length);
-            WebSockets.sendBinary(ByteBuffer.wrap(buffer, offset, buffersize),session,this);
+            MyHTTPD.sendByteCount.addAndGet(length);
+            WebSockets.sendBinary(ByteBuffer.wrap(buffer, offset, length),session,this);
         }catch(Exception e){
             alive=false;
         }

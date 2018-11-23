@@ -44,7 +44,7 @@ public class SendThread implements Runnable {
                     readBuffer(is, readBuf, (writePos) * BUFFERSIZE, BUFFERSIZE);
                     writePos = (writePos + 1) % (BUFFERED_BLOCKS);
                     semSend.release();
-                    MyHTTPD.recvByteCount.addAndGet(readBuf.length);
+                    MyHTTPD.recvByteCount.addAndGet(BUFFERSIZE);
                 }
             } catch (IOException e) {
                 logger.warn("Input Stream error", e);

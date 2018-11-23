@@ -57,7 +57,7 @@ import java.util.logging.Logger;
 
 import static io.undertow.Handlers.resource;
 
-public class MyHTTPD implements Runnable {
+public class MyHTTPD extends TimerTask {
     private final static org.slf4j.Logger logger = LoggerFactory.getLogger(MyHTTPD.class);
     private static final Logger LOG = Logger.getLogger(MyHTTPD.class.getName());
 
@@ -68,6 +68,7 @@ public class MyHTTPD implements Runnable {
     private java.util.Timer t = new Timer();
     private long lastRecvBytes = 0;
     private long lastSendBytes = 0;
+    private long lastTimeMillis = 0;
     private final boolean debug;
     Undertow server;
 
@@ -112,7 +113,7 @@ public class MyHTTPD implements Runnable {
             new Thread(st).start();
             MyHTTPD.list.put(String.valueOf(i), st);
         }
-
+        t.scheduleAtFixedRate(this,0L,3000L);
     }
 
     private static class MyWebSocket extends AbstractReceiveListener {
@@ -122,8 +123,6 @@ public class MyHTTPD implements Runnable {
             if (st == null)
                 return;
             ClientSession s = st.ws.createAddSession(channel);
-            logger.info(String.format("client connected: %s", channel.getPeerAddress().toString()));
-            System.out.println("end" + this.toString());
         }
 
         @Override
@@ -136,15 +135,18 @@ public class MyHTTPD implements Runnable {
     public void run() {
         long currentSendBytes = sendByteCount.get();
         long currentRecvBytes = recvByteCount.get();
+        long currentTimeMillis=System.currentTimeMillis();
 
-        float recvRate = (currentRecvBytes - lastRecvBytes) / 1000000.0f * 8;
-        float sendRate = (currentSendBytes - lastSendBytes) / 1000000.0f * 8;
+        float recvBytes = (currentRecvBytes - lastRecvBytes);
+        float sendBytes = (currentSendBytes - lastSendBytes);
+        long timeDiff= currentTimeMillis-lastTimeMillis;
         int clients = 0;
         for (SendThread st : list.values()) {
             clients += st.ws.getCount();
         }
-        logger.info(String.format("%d clients; recv/send MBit %.2f/%.2f", clients, recvRate, sendRate));
+        logger.info(String.format("%d clients; recv/send MBit %.2f/%.2f", clients, (recvBytes*8.0)/(timeDiff*1000), (sendBytes*8.0)/(timeDiff*1000)));
         lastSendBytes = currentSendBytes;
         lastRecvBytes = currentRecvBytes;
+        lastTimeMillis=currentTimeMillis;
     }
 }
