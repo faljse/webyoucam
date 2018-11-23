@@ -5,7 +5,6 @@ import org.fusesource.jansi.AnsiConsole;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.servlet.ServletException;
 import java.io.IOException;
 
 /**
@@ -21,7 +20,7 @@ public class Main {
             server.start();
             System.out.println("Server started, hit Enter to stop.\n");
             System.in.read();
-        } catch (ServletException|IOException e) {
+        } catch (IOException e) {
             logger.warn("asd", e);
         }
         System.out.println("Server stopped.\n");

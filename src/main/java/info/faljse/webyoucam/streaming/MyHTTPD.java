@@ -49,7 +49,6 @@ import io.undertow.websockets.core.protocol.version13.Hybi13Handshake;
 import io.undertow.websockets.spi.WebSocketHttpExchange;
 import org.slf4j.LoggerFactory;
 
-import javax.servlet.ServletException;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.*;
@@ -77,7 +76,7 @@ public class MyHTTPD implements Runnable {
         this.port = port;
     }
 
-    public void start() throws ServletException {
+    public void start() {
 
         Undertow.Builder builder = Undertow.builder();
         Set<Handshake> handshakes = new HashSet();
