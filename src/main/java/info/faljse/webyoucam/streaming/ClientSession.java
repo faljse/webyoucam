@@ -13,7 +13,6 @@ import java.nio.ByteBuffer;
 public class ClientSession implements WebSocketCallback {
     private final static Logger logger = LoggerFactory.getLogger(ClientSession.class);
     private final WebSocketChannel session;
-
     private volatile boolean alive=true;
 
     public ClientSession(int clientID, WebSocketChannel session) {
@@ -42,6 +41,7 @@ public class ClientSession implements WebSocketCallback {
 
     @Override
     public void onError(WebSocketChannel webSocketChannel, Object o, Throwable throwable) {
-
+        logger.debug("client error: ",throwable);
+        alive=false;
     }
 }

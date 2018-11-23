@@ -28,8 +28,8 @@ public class WSSessions {
     }
 
     public void send(byte[] buffer, int offset, int buffersize){
-        sessions.removeIf(cs -> !cs.isAlive());
         synchronized (sessions) {
+            sessions.removeIf(cs -> !cs.isAlive());
             ArrayList<ClientSession> scopy = new ArrayList<>(sessions);
             for (ClientSession s : scopy) {
                 s.send(buffer, offset, buffersize);

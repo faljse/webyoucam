@@ -18,10 +18,9 @@ public class SendThread implements Runnable {
     public WSSessions ws;
     private final byte[] readBuf = new byte[BUFFERSIZE * BUFFERED_BLOCKS];
     private Semaphore semSend;
-    private Semaphore semRecv;
     private final Lock rcvLock = new ReentrantLock();
     private volatile boolean _running;
-    private static final int BUFFERSIZE = 1024;
+    private static final int BUFFERSIZE = 1024; //should be smaller than avg frame
     private static final int BUFFERED_BLOCKS = 100;
 
 
@@ -32,27 +31,22 @@ public class SendThread implements Runnable {
         sendThread.setName("Websocket send");
         _running = true;
         semSend = new Semaphore(0);
-        semRecv = new Semaphore(1);
-        sendThread.start();
     }
 
-    volatile int blockPos = 0;
+    private volatile int writePos = 0;
+
 
     public void send(InputStream is) {
         boolean locked = rcvLock.tryLock();
-
         if (locked) {
             try {
                 while (true) {
-                    semRecv.acquire();
-                    blockPos = (blockPos + 1) % BUFFERED_BLOCKS;
-                    readBuffer(is, readBuf, blockPos * BUFFERSIZE, BUFFERSIZE);
+                    readBuffer(is, readBuf, (writePos) * BUFFERSIZE, BUFFERSIZE);
+                    writePos = (writePos + 1) % (BUFFERED_BLOCKS);
                     semSend.release();
                     MyHTTPD.recvByteCount.addAndGet(readBuf.length);
                 }
             } catch (IOException e) {
-                logger.warn("Input Stream error", e);
-            } catch (InterruptedException e) {
                 logger.warn("Input Stream error", e);
             } finally {
                 rcvLock.unlock();
@@ -66,10 +60,11 @@ public class SendThread implements Runnable {
     @Override
     public void run() {
         try {
+            int readPos=0;
             while (_running) {
                 semSend.acquire();
-                ws.send(readBuf, blockPos * BUFFERSIZE, BUFFERSIZE);
-                semRecv.release();
+                ws.send(readBuf, readPos * BUFFERSIZE, BUFFERSIZE);
+                readPos = (readPos + 1) % (BUFFERED_BLOCKS);
             }
         } catch (InterruptedException e) {
             logger.info("Send Thread interrupted", e);
