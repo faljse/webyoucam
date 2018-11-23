@@ -6,42 +6,47 @@ import org.slf4j.LoggerFactory;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class SendThread implements Runnable{
+public class SendThread implements Runnable {
     private final static Logger logger = LoggerFactory.getLogger(FFMpegThread.class);
 
     private Thread sendThread;
     public WSSessions ws;
-    private final byte[] readBuf=new byte[BUFFERSIZE];
-    private final byte[] sendBuf=new byte[BUFFERSIZE];
+    private final byte[] readBuf = new byte[BUFFERSIZE * BUFFERED_BLOCKS];
     private Semaphore semSend;
     private Semaphore semRecv;
-    private final Lock rcvLock=new ReentrantLock();
+    private final Lock rcvLock = new ReentrantLock();
     private volatile boolean _running;
     private static final int BUFFERSIZE = 1024;
+    private static final int BUFFERED_BLOCKS = 100;
+
 
     public SendThread() {
-        ws=new WSSessions();
+        ws = new WSSessions();
         Thread.currentThread().setName("Stream input");
         sendThread = new Thread(this);
         sendThread.setName("Websocket send");
         _running = true;
-        semSend=new Semaphore(0);
-        semRecv=new Semaphore(1);
+        semSend = new Semaphore(0);
+        semRecv = new Semaphore(1);
         sendThread.start();
     }
 
+    volatile int blockPos = 0;
+
     public void send(InputStream is) {
-        boolean locked=rcvLock.tryLock();
-        if(locked){
+        boolean locked = rcvLock.tryLock();
+
+        if (locked) {
             try {
-                while (true){
-                    readBuffer(is, readBuf);
+                while (true) {
                     semRecv.acquire();
-                    System.arraycopy(readBuf, 0, sendBuf, 0, BUFFERSIZE);
+                    blockPos = (blockPos + 1) % BUFFERED_BLOCKS;
+                    readBuffer(is, readBuf, blockPos * BUFFERSIZE, BUFFERSIZE);
                     semSend.release();
                     MyHTTPD.recvByteCount.addAndGet(readBuf.length);
                 }
@@ -52,19 +57,18 @@ public class SendThread implements Runnable{
             } finally {
                 rcvLock.unlock();
                 shutDown();
-                semSend=null;
-                sendThread=null;
+                semSend = null;
+                sendThread = null;
             }
         }
     }
+
     @Override
     public void run() {
         try {
             while (_running) {
                 semSend.acquire();
-                byte[] tmpBuf=new byte[sendBuf.length];
-                System.arraycopy(sendBuf,0, tmpBuf,0, sendBuf.length);
-                ws.send(tmpBuf);
+                ws.send(readBuf, blockPos * BUFFERSIZE, BUFFERSIZE);
                 semRecv.release();
             }
         } catch (InterruptedException e) {
@@ -75,11 +79,10 @@ public class SendThread implements Runnable{
         logger.info("Send Thread terminating.");
     }
 
-    private synchronized void shutDown()
-    {
+    private synchronized void shutDown() {
         _running = false;
         try {
-            while(sendThread.isAlive()){
+            while (sendThread.isAlive()) {
                 sendThread.interrupt();
                 logger.warn("Waiting for sendThread to die");
                 sendThread.join(1000);
@@ -89,14 +92,14 @@ public class SendThread implements Runnable{
         }
     }
 
-    private static void readBuffer(InputStream is, byte[] buffer) throws IOException {
-        int readPos=0;
+    private static void readBuffer(InputStream is, byte[] buffer, int offset, int length) throws IOException {
+        int readPos = 0;
         while (true) {
-            int count=is.read(buffer, readPos, buffer.length-readPos);
-            if(count<0)
+            int count = is.read(buffer, readPos + offset, length - readPos);
+            if (count < 0)
                 throw new EOFException("EOF from: ");
-            readPos+=count;
-            if(readPos==buffer.length)
+            readPos += count;
+            if (readPos == length)
                 return;
         }
     }

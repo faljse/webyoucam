@@ -27,12 +27,12 @@ public class WSSessions {
         }
     }
 
-    public void send(byte[] buffer){
+    public void send(byte[] buffer, int offset, int buffersize){
         sessions.removeIf(cs -> !cs.isAlive());
         synchronized (sessions) {
             ArrayList<ClientSession> scopy = new ArrayList<>(sessions);
             for (ClientSession s : scopy) {
-                s.send(buffer);
+                s.send(buffer, offset, buffersize);
             }
         }
     }
