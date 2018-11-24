@@ -52,7 +52,6 @@ public class SendThread implements Runnable {
                 rcvLock.unlock();
                 shutDown();
                 semSend = null;
-                sendThread = null;
             }
         }
     }
@@ -81,6 +80,8 @@ public class SendThread implements Runnable {
                 sendThread.interrupt();
                 logger.warn("Waiting for sendThread to die");
                 sendThread.join(1000);
+                sendThread = null;
+
             }
         } catch (Exception e) {
             logger.warn("Shutdown sendthread", e);

@@ -61,16 +61,16 @@ public class MyHTTPD extends TimerTask {
     private final static org.slf4j.Logger logger = LoggerFactory.getLogger(MyHTTPD.class);
     private static final Logger LOG = Logger.getLogger(MyHTTPD.class.getName());
 
-    public static Map<String, SendThread> list = new HashMap<String, SendThread>();
-    public static AtomicLong sendByteCount = new AtomicLong();
-    public static AtomicLong recvByteCount = new AtomicLong();
+    final static Map<String, SendThread> list = new HashMap<String, SendThread>();
+    final static AtomicLong sendByteCount = new AtomicLong();
+    final static AtomicLong recvByteCount = new AtomicLong();
     private final int port;
     private java.util.Timer t = new Timer();
     private long lastRecvBytes = 0;
     private long lastSendBytes = 0;
     private long lastTimeMillis = 0;
     private final boolean debug;
-    Undertow server;
+    private Undertow server;
 
     public MyHTTPD(int port, boolean debug) {
         this.debug = debug;
@@ -122,7 +122,7 @@ public class MyHTTPD extends TimerTask {
             SendThread st = MyHTTPD.list.get(id);
             if (st == null)
                 return;
-            ClientSession s = st.ws.createAddSession(channel);
+            st.ws.createAddSession(channel);
         }
 
         @Override

@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -41,22 +42,21 @@ public class FFMpegThread implements Runnable {
         pb.redirectErrorStream(true);
         Process p = pb.start();
         assert pb.redirectInput() == ProcessBuilder.Redirect.PIPE;
-        InputStream in = p.getInputStream();
-        BufferedReader br=new BufferedReader(new InputStreamReader(in));
-        String line=null;
-        //ffmpeg sends all output to stdout
-        int cnt=0; //display first x lines for debuging
-        while((line=br.readLine())!=null){
-            if(cnt<50){
-                cnt++;
-                logger.info(line);
-            }
-            else if(cnt==50){
-                cnt++;
-                logger.info("Hiding ffmpeg output.");
+        try(BufferedReader br=new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
+            String line;
+            //ffmpeg sends all output to stdout
+            int cnt=0; //display first x lines for debuging
+            while((line=br.readLine())!=null){
+                if(cnt<50){
+                    cnt++;
+                    logger.info(line);
+                }
+                else if(cnt==50){
+                    cnt++;
+                    logger.info("Hiding ffmpeg output.");
+                }
             }
         }
-
     }
 
 
