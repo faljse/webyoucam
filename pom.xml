@@ -8,7 +8,7 @@
     <version>1.0-SNAPSHOT</version>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <undertow.version>2.0.15.Final</undertow.version>
+        <undertow.version>2.0.22.Final</undertow.version>
 
         <slf4j.version>1.7.25</slf4j.version>
     </properties>
